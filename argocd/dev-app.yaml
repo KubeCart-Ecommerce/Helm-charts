@@ -16,13 +16,20 @@ metadata:
     argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/git-branch: dev
     argocd-image-updater.argoproj.io/write-back-target: "helmvalues:values-dev.yaml"
-    argocd-image-updater.argoproj.io/frontend.update-strategy: latest
-    argocd-image-updater.argoproj.io/auth.update-strategy: latest
-    argocd-image-updater.argoproj.io/cart.update-strategy: latest
-    argocd-image-updater.argoproj.io/product.update-strategy: latest
-    argocd-image-updater.argoproj.io/order.update-strategy: latest
-    argocd-image-updater.argoproj.io/notification.update-strategy: latest
-    argocd-image-updater.argoproj.io/profile.update-strategy: latest
+    argocd-image-updater.argoproj.io/frontend.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/auth.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/cart.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/product.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/order.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/notification.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/profile.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/frontend.allow-tags: "regexp:^[0-9a-f]{40}$"
+    argocd-image-updater.argoproj.io/auth.allow-tags: "regexp:^[0-9a-f]{40}$"
+    argocd-image-updater.argoproj.io/cart.allow-tags: "regexp:^[0-9a-f]{40}$"
+    argocd-image-updater.argoproj.io/product.allow-tags: "regexp:^[0-9a-f]{40}$"
+    argocd-image-updater.argoproj.io/order.allow-tags: "regexp:^[0-9a-f]{40}$"
+    argocd-image-updater.argoproj.io/notification.allow-tags: "regexp:^[0-9a-f]{40}$"
+    argocd-image-updater.argoproj.io/profile.allow-tags: "regexp:^[0-9a-f]{40}$"
     argocd-image-updater.argoproj.io/frontend.helm.image-name: frontend.image.repository
     argocd-image-updater.argoproj.io/frontend.helm.image-tag: frontend.image.tag
     argocd-image-updater.argoproj.io/auth.helm.image-name: auth-service.image.repository

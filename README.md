@@ -1,43 +1,111 @@
-# ArgoCD GitOps Setup
+# KubeCart Helm GitOps
 
-This repository is the GitOps source of truth for the KubeCart platform.
+This directory is the GitOps source of truth for KubeCart.
 
-The expected deployment flow is:
+It contains:
 
-1. Each microservice CI pipeline builds and pushes a new image to `ghcr.io`
-2. ArgoCD Image Updater detects the new tag
-3. ArgoCD Image Updater updates `values-dev.yaml` or `values-prod.yaml`
-4. ArgoCD Image Updater commits the change back to this repository
-5. ArgoCD detects the Git change and deploys it automatically
+- the umbrella Helm chart (`Chart.yaml`)
+- environment values (`values-dev.yaml`, `values-prod.yaml`)
+- ArgoCD Applications (`argocd/dev-app.yaml`, `argocd/prod-app.yaml`)
+
+The deployment flow is:
+
+1. Each microservice repository runs GitHub Actions CI.
+2. CI builds and pushes a container image to `ghcr.io`.
+3. ArgoCD Image Updater watches the image repository.
+4. Image Updater commits the new tag into this Helm repo.
+5. ArgoCD syncs the changed values into the cluster.
 
 ## Repository structure
 
-- `Chart.yaml` is the umbrella Helm chart
-- `values-dev.yaml` contains the dev environment values
-- `values-prod.yaml` contains the prod environment values
-- `argocd/dev-app.yaml` is the ArgoCD Application for dev
-- `argocd/prod-app.yaml` is the ArgoCD Application for prod
+- `Chart.yaml`: umbrella chart for frontend, gateway, services, mongodb, storage, and grafana-nodeport
+- `values.yaml`: base values for manual Helm usage
+- `values-dev.yaml`: dev environment values
+- `values-prod.yaml`: prod environment values
+- `argocd/dev-app.yaml`: ArgoCD Application for dev
+- `argocd/prod-app.yaml`: ArgoCD Application for prod
+- `argocd/image-updater.yaml`: ImageUpdater CR that lets modern ArgoCD Image Updater watch both Applications while still reading legacy annotations
 
-## 1. Install ArgoCD
+## Current deployment contract
+
+- Dev branch: `dev`
+- Prod branch: `main`
+- Dev namespace: `dev`
+- Prod namespace: `prod`
+- Dev sync: automatic
+- Prod sync: manual by default
+
+## Image tagging contract
+
+This Helm repo expects CI to publish images with two different tag styles:
+
+- Dev images: full 40-character Git commit SHA
+- Prod images: semantic version tags like `v1.2.3`
+
+That contract matters because ArgoCD Image Updater is configured like this:
+
+- Dev uses `newest-build` and only accepts tags matching `^[0-9a-f]{40}$`
+- Prod uses `semver` and only accepts tags matching `^v[0-9]+\.[0-9]+\.[0-9]+$`
+
+This separation prevents the dev application from accidentally consuming prod semver images from the same GHCR repository.
+
+## Important chart behavior
+
+- Most service configuration lives under `.Values.global.*`
+- Image updater writes only top-level image keys such as `frontend.image.tag`
+- Templates prefer `.Values.<service>.image.tag`
+- Templates fall back to `.Values.global.<service>.image.tag`
+
+Do not remove that override pattern. It is required for ArgoCD Image Updater.
+
+## Frontend behavior
+
+The frontend is expected to call the backend through the same origin and nginx reverse proxy:
+
+- `/api/auth`
+- `/api/products`
+- `/api/orders`
+- `/api/cart`
+- `/api/profiles`
+- `/api/notifications`
+
+Because of that, the Helm frontend config keeps the `REACT_APP_*_URL` values empty.
+That preserves relative API paths instead of pushing cluster-local DNS names into the browser layer.
+
+## Backend behavior
+
+- Each backend service gets non-secret config from a ConfigMap
+- Each backend service gets secrets from a Secret
+- Pods load them through `envFrom`
+- MongoDB is deployed as six StatefulSets with six headless Services
+- Each service uses its own Mongo service DNS name through `MONGO_URI`
+
+## Prerequisites
+
+Install ArgoCD:
 
 ```bash
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-## 2. Install ArgoCD Image Updater
+Install ArgoCD Image Updater:
 
 ```bash
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/stable/manifests/install.yaml
 ```
 
-Note: Git write-back requires ArgoCD v2.0 or newer.
+Cluster prerequisites:
 
-## 3. Create Git credentials secret
+- a working `kgateway` `GatewayClass`
+- a working NFS provisioner named `cluster.local/dev-nfs-provisioner-nfs-subdir-external-provisioner`
+- GHCR access if the images are private
 
-ArgoCD and ArgoCD Image Updater both need access to this Helm Git repository so they can read manifests and push updated image tags.
+## Git repository credential secret
 
-Create a file named `repo-secret.yaml` with this content:
+ArgoCD and ArgoCD Image Updater both need access to this Git repository.
+
+Create `repo-secret.yaml`:
 
 ```yaml
 apiVersion: v1
@@ -60,50 +128,71 @@ Apply it:
 kubectl apply -f repo-secret.yaml
 ```
 
-## 4. Update placeholders before applying
+If GHCR images are private, also configure registry credentials for ArgoCD Image Updater.
 
-Replace these placeholders in:
-
-- `values-dev.yaml`
-- `values-prod.yaml`
-- `argocd/dev-app.yaml`
-- `argocd/prod-app.yaml`
-
-Update:
-
-- `<org>` with your GitHub org or username
-- `https://github.com/<org>/helm-repo.git` with your real Helm repository URL
-- SMTP placeholders and any application secrets with your real values
-
-If your GHCR images are private, configure ArgoCD Image Updater with GHCR registry credentials before expecting automatic image discovery.
-
-## 5. Apply the ArgoCD Applications
+## Apply the applications
 
 ```bash
 kubectl apply -f argocd/dev-app.yaml
 kubectl apply -f argocd/prod-app.yaml
+kubectl apply -f argocd/image-updater.yaml
 ```
 
-Both applications use auto-sync and will create the destination namespace if it does not already exist.
+Namespace creation is enabled through `CreateNamespace=true`.
 
-## 6. Expected CI behavior
+## Sync behavior
 
-Each microservice repository CI pipeline should only:
+- `kubecart-dev` auto-syncs with `prune: true` and `selfHeal: true`
+- `kubecart-prod` does not auto-sync by default
+- `kubecart-image-updater` selects both ArgoCD Applications and tells the controller to read their existing `argocd-image-updater.argoproj.io/*` annotations
 
-1. Build the Docker image
-2. Push the Docker image to `ghcr.io`
+To deploy prod after Image Updater changes `values-prod.yaml`, sync it manually:
 
-CI should not update Helm values files and should not commit to this Helm repository.
+```bash
+argocd app sync kubecart-prod
+```
 
-## 7. How automatic image updates work
+## Values that must be replaced before real deployment
 
-- `kubecart-dev` tracks the `dev` branch and updates `values-dev.yaml`
-- `kubecart-prod` tracks the `main` branch and updates `values-prod.yaml`
-- dev uses the `latest` strategy
-- prod uses the `semver` strategy and only accepts tags matching `vX.X.X`
+Replace the placeholders in:
 
-## 8. First sync note
+- `values.yaml`
+- `values-dev.yaml`
+- `values-prod.yaml`
 
-The environment values files start with `v0.0.0` as the seed image tag so the prod `semver` strategy has a valid semantic version to compare against.
+Replace:
 
-If you already have real tags in GHCR, replace `v0.0.0` with the first tag you want each environment to start from before the first ArgoCD sync.
+- JWT secrets
+- SMTP credentials
+- repo URL placeholders if you fork the Helm repo
+
+## First sync note
+
+The values files start with `v0.0.0` so prod semver tracking has a valid seed tag.
+
+If your repositories already publish real tags, replace `v0.0.0` with the first release tag you want before the first sync.
+
+## Troubleshooting
+
+If dev is not updating:
+
+- confirm CI pushes SHA-based tags to GHCR
+- confirm the dev image tag is a full 40-character commit SHA
+- confirm ArgoCD Image Updater can read GHCR and push back to Git
+
+If prod is not updating:
+
+- confirm CI pushes `vX.Y.Z` tags on `main`
+- confirm the new tag matches the semver regex
+- confirm you manually sync `kubecart-prod` unless you intentionally enable prod auto-sync
+
+If profile APIs fail:
+
+- verify the route prefix is `/api/profiles`
+- verify both gateway and frontend are using the plural path
+
+## Panel discussion summary
+
+Use this short explanation in interviews or panel discussions:
+
+KubeCart uses a GitOps-based CI/CD setup with an umbrella Helm chart. Each microservice repository only builds and pushes a container image to GHCR. ArgoCD Image Updater watches those image repositories and commits the new tags back into the Helm values files. ArgoCD then reconciles the changed Git state into Kubernetes. Dev is fully automated and tracks SHA-tagged images, while prod is protected by semver tags and a manual sync gate. The chart preserves a split between global Helm configuration and top-level image tag overrides so Image Updater can change image versions without rewriting the whole values structure.
