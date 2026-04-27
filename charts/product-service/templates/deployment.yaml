@@ -1,6 +1,8 @@
 {{- $svc := index .Values.global "product-service" -}}
-{{- $imageRepository := dig "product-service" "image" "repository" $svc.image.repository .Values -}}
-{{- $imageTag := dig "product-service" "image" "tag" $svc.image.tag .Values -}}
+{{- $imageValues := index .Values "product-service" | default dict -}}
+{{- $image := index $imageValues "image" | default dict -}}
+{{- $imageRepository := index $image "repository" | default $svc.image.repository -}}
+{{- $imageTag := index $image "tag" | default $svc.image.tag -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
