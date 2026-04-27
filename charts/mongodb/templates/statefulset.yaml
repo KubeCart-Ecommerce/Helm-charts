@@ -24,6 +24,7 @@ spec:
       containers:
         - name: mongodb
           image: "{{ $mongo.image.repository }}:{{ $mongo.image.tag }}"
+          imagePullPolicy: {{ default "IfNotPresent" $mongo.imagePullPolicy }}
           ports:
             - containerPort: {{ $mongo.containerPort }}
           volumeMounts:
