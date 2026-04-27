@@ -48,7 +48,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/<org>/helm-repo.git
+    repoURL: https://github.com/KubeCart-Ecommerce/Helm-charts.git
     targetRevision: main
     path: .
     helm:
