@@ -3,12 +3,12 @@ global:
 
   frontend:
     config:
-      REACT_APP_AUTH_SERVICE_URL: "http://auth-service.dev.svc.cluster.local:4001"
-      REACT_APP_PRODUCT_SERVICE_URL: "http://product-service.dev.svc.cluster.local:4002"
-      REACT_APP_ORDER_SERVICE_URL: "http://order-service.dev.svc.cluster.local:4003"
-      REACT_APP_CART_SERVICE_URL: "http://cart-service.dev.svc.cluster.local:4004"
-      REACT_APP_PROFILE_SERVICE_URL: "http://user-profile-service.dev.svc.cluster.local:4005"
-      REACT_APP_NOTIFICATION_SERVICE_URL: "http://notification-service.dev.svc.cluster.local:4006"
+      REACT_APP_AUTH_SERVICE_URL: ""
+      REACT_APP_PRODUCT_SERVICE_URL: ""
+      REACT_APP_ORDER_SERVICE_URL: ""
+      REACT_APP_CART_SERVICE_URL: ""
+      REACT_APP_PROFILE_SERVICE_URL: ""
+      REACT_APP_NOTIFICATION_SERVICE_URL: ""
       REACT_APP_APP_NAME: "KubeCart"
     replicaCount: 2
     hpa:
@@ -57,7 +57,7 @@ global:
       JWT_REFRESH_SECRET: "change_this_to_another_strong_secret_min_32_characters"
       JWT_EXPIRES_IN: "15m"
       JWT_REFRESH_EXPIRES_IN: "7d"
-      FRONTEND_URL: "http://frontend-service.dev.svc.cluster.local"
+      FRONTEND_URL: "http://frontend-service.dev.svc.cluster.local:3000"
     replicaCount: 2
     image:
       repository: ghcr.io/kubecart-ecommerce/auth-service
@@ -322,7 +322,7 @@ global:
       - path: /api/cart
         serviceName: cart-service
         servicePort: 4004
-      - path: /api/profile
+      - path: /api/profiles
         serviceName: user-profile-service
         servicePort: 4005
       - path: /api/notifications
@@ -385,5 +385,4 @@ user-profile-service:
   image:
     repository: ghcr.io/kubecart-ecommerce/user-profile-service
     tag: "v0.0.0"
-
 
