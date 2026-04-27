@@ -23,7 +23,7 @@ global:
               averageUtilization: 50
     image:
       repository: ghcr.io/kubecart-ecommerce/kubecart-frontend
-      tag: "v0.0.0"
+      tag: "v0.0.6"
     imagePullPolicy: IfNotPresent
     containerPort: 3000
     servicePort: 3000
@@ -61,7 +61,7 @@ global:
     replicaCount: 2
     image:
       repository: ghcr.io/kubecart-ecommerce/auth-service
-      tag: "v0.0.0"
+      tag: "v0.0.6"
     imagePullPolicy: IfNotPresent
     containerPort: 4001
     servicePort: 4001
@@ -97,7 +97,7 @@ global:
     replicaCount: 2
     image:
       repository: ghcr.io/kubecart-ecommerce/cart-service
-      tag: "v0.0.0"
+      tag: "v0.0.6"
     imagePullPolicy: IfNotPresent
     containerPort: 4004
     servicePort: 4004
@@ -133,7 +133,7 @@ global:
     replicaCount: 2
     image:
       repository: ghcr.io/kubecart-ecommerce/product-service
-      tag: "v0.0.0"
+      tag: "v0.0.6"
     imagePullPolicy: IfNotPresent
     containerPort: 4002
     servicePort: 4002
@@ -171,7 +171,7 @@ global:
     replicaCount: 2
     image:
       repository: ghcr.io/kubecart-ecommerce/order-service
-      tag: "v0.0.0"
+      tag: "v0.0.6"
     imagePullPolicy: IfNotPresent
     containerPort: 4003
     servicePort: 4003
@@ -212,7 +212,7 @@ global:
     replicaCount: 2
     image:
       repository: ghcr.io/kubecart-ecommerce/notification-service
-      tag: "v0.0.0"
+      tag: "v0.0.6"
     imagePullPolicy: IfNotPresent
     containerPort: 4006
     servicePort: 4006
@@ -248,7 +248,7 @@ global:
     replicaCount: 2
     image:
       repository: ghcr.io/kubecart-ecommerce/user-profile-service
-      tag: "v0.0.0"
+      tag: "v0.0.6"
     imagePullPolicy: IfNotPresent
     containerPort: 4005
     servicePort: 4005
@@ -354,35 +354,35 @@ global:
 frontend:
   image:
     repository: ghcr.io/kubecart-ecommerce/kubecart-frontend
-    tag: "v0.0.0"
+    tag: "v0.0.6"
 
 auth-service:
   image:
     repository: ghcr.io/kubecart-ecommerce/auth-service
-    tag: "v0.0.0"
+    tag: "v0.0.6"
 
 cart-service:
   image:
     repository: ghcr.io/kubecart-ecommerce/cart-service
-    tag: "v0.0.0"
+    tag: "v0.0.6"
 
 product-service:
   image:
     repository: ghcr.io/kubecart-ecommerce/product-service
-    tag: "v0.0.0"
+    tag: "v0.0.6"
 
 order-service:
   image:
     repository: ghcr.io/kubecart-ecommerce/order-service
-    tag: "v0.0.0"
+    tag: "v0.0.6"
 
 notification-service:
   image:
     repository: ghcr.io/kubecart-ecommerce/notification-service
-    tag: "v0.0.0"
+    tag: "v0.0.6"
 
 user-profile-service:
   image:
     repository: ghcr.io/kubecart-ecommerce/user-profile-service
-    tag: "v0.0.0"
+    tag: "v0.0.6"
 
