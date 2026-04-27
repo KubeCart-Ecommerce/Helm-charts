@@ -1,0 +1,16 @@
+{{- $svc := index .Values.global "user-profile-service" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-profile-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: user-profile-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ $svc.servicePort }}
+      targetPort: {{ $svc.containerPort }}
+      protocol: TCP
+  selector:
+    app: user-profile-service

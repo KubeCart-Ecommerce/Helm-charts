@@ -1,0 +1,12 @@
+{{- $storage := .Values.global.storage -}}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ $storage.name }}
+  annotations:
+    storageclass.kubernetes.io/is-default-class: {{ $storage.isDefaultClass | quote }}
+provisioner: {{ $storage.provisioner }}
+parameters:
+{{- toYaml $storage.parameters | nindent 2 }}
+reclaimPolicy: {{ $storage.reclaimPolicy }}
+volumeBindingMode: {{ $storage.volumeBindingMode }}

@@ -1,0 +1,8 @@
+{{- $svc := index .Values.global "product-service" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: product-service-config
+  namespace: {{ .Values.global.namespace }}
+data:
+{{- toYaml $svc.config | nindent 2 }}

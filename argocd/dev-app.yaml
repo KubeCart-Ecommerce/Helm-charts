@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubecart-dev
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: >-
+      frontend=ghcr.io/kubecart-ecommerce/kubecart-frontend,
+      auth=ghcr.io/kubecart-ecommerce/auth-service,
+      cart=ghcr.io/kubecart-ecommerce/cart-service,
+      product=ghcr.io/kubecart-ecommerce/product-service,
+      order=ghcr.io/kubecart-ecommerce/order-service,
+      notification=ghcr.io/kubecart-ecommerce/notification-service,
+      profile=ghcr.io/kubecart-ecommerce/user-profile-service
+
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: dev
+    argocd-image-updater.argoproj.io/write-back-target: "helmvalues:values-dev.yaml"
+    argocd-image-updater.argoproj.io/frontend.update-strategy: latest
+    argocd-image-updater.argoproj.io/auth.update-strategy: latest
+    argocd-image-updater.argoproj.io/cart.update-strategy: latest
+    argocd-image-updater.argoproj.io/product.update-strategy: latest
+    argocd-image-updater.argoproj.io/order.update-strategy: latest
+    argocd-image-updater.argoproj.io/notification.update-strategy: latest
+    argocd-image-updater.argoproj.io/profile.update-strategy: latest
+    argocd-image-updater.argoproj.io/frontend.helm.image-name: frontend.image.repository
+    argocd-image-updater.argoproj.io/frontend.helm.image-tag: frontend.image.tag
+    argocd-image-updater.argoproj.io/auth.helm.image-name: auth-service.image.repository
+    argocd-image-updater.argoproj.io/auth.helm.image-tag: auth-service.image.tag
+    argocd-image-updater.argoproj.io/cart.helm.image-name: cart-service.image.repository
+    argocd-image-updater.argoproj.io/cart.helm.image-tag: cart-service.image.tag
+    argocd-image-updater.argoproj.io/product.helm.image-name: product-service.image.repository
+    argocd-image-updater.argoproj.io/product.helm.image-tag: product-service.image.tag
+    argocd-image-updater.argoproj.io/order.helm.image-name: order-service.image.repository
+    argocd-image-updater.argoproj.io/order.helm.image-tag: order-service.image.tag
+    argocd-image-updater.argoproj.io/notification.helm.image-name: notification-service.image.repository
+    argocd-image-updater.argoproj.io/notification.helm.image-tag: notification-service.image.tag
+    argocd-image-updater.argoproj.io/profile.helm.image-name: user-profile-service.image.repository
+    argocd-image-updater.argoproj.io/profile.helm.image-tag: user-profile-service.image.tag
+
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/KubeCart-Ecommerce/Helm-charts.git
+    targetRevision: dev
+    path: .
+    helm:
+      valueFiles:
+        - values-dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

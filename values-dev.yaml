@@ -1,0 +1,389 @@
+global:
+  namespace: dev
+
+  frontend:
+    config:
+      REACT_APP_AUTH_SERVICE_URL: "http://auth-service.dev.svc.cluster.local:4001"
+      REACT_APP_PRODUCT_SERVICE_URL: "http://product-service.dev.svc.cluster.local:4002"
+      REACT_APP_ORDER_SERVICE_URL: "http://order-service.dev.svc.cluster.local:4003"
+      REACT_APP_CART_SERVICE_URL: "http://cart-service.dev.svc.cluster.local:4004"
+      REACT_APP_PROFILE_SERVICE_URL: "http://user-profile-service.dev.svc.cluster.local:4005"
+      REACT_APP_NOTIFICATION_SERVICE_URL: "http://notification-service.dev.svc.cluster.local:4006"
+      REACT_APP_APP_NAME: "KubeCart"
+    replicaCount: 2
+    hpa:
+      minReplicas: 2
+      maxReplicas: 6
+      metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: 50
+    image:
+      repository: ghcr.io/kubecart-ecommerce/kubecart-frontend
+      tag: "v0.0.0"
+    imagePullPolicy: IfNotPresent
+    containerPort: 3000
+    servicePort: 3000
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 3000
+      initialDelaySeconds: 10
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 3000
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "300m"
+        memory: "256Mi"
+
+  auth-service:
+    config:
+      NODE_ENV: "production"
+      PORT: "4001"
+    secrets:
+      MONGO_URI: "mongodb://auth-mongo:27017/authdb"
+      JWT_SECRET: "change_this_to_a_strong_secret_min_32_characters"
+      JWT_REFRESH_SECRET: "change_this_to_another_strong_secret_min_32_characters"
+      JWT_EXPIRES_IN: "15m"
+      JWT_REFRESH_EXPIRES_IN: "7d"
+      FRONTEND_URL: "http://frontend-service.dev.svc.cluster.local"
+    replicaCount: 2
+    image:
+      repository: ghcr.io/kubecart-ecommerce/auth-service
+      tag: "v0.0.0"
+    imagePullPolicy: IfNotPresent
+    containerPort: 4001
+    servicePort: 4001
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 4001
+      initialDelaySeconds: 10
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 4001
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "300m"
+        memory: "256Mi"
+
+  cart-service:
+    config:
+      NODE_ENV: "production"
+      PORT: "4004"
+    secrets:
+      MONGO_URI: "mongodb://cart-mongo:27017/cart"
+      JWT_SECRET: "change_this_to_a_strong_secret_min_32_characters"
+      PRODUCT_SERVICE_URL: "http://product-service.dev.svc.cluster.local:4002"
+      FRONTEND_URL: "http://frontend-service.dev.svc.cluster.local:3000"
+    replicaCount: 2
+    image:
+      repository: ghcr.io/kubecart-ecommerce/cart-service
+      tag: "v0.0.0"
+    imagePullPolicy: IfNotPresent
+    containerPort: 4004
+    servicePort: 4004
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 4004
+      initialDelaySeconds: 10
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 4004
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "300m"
+        memory: "256Mi"
+
+  product-service:
+    config:
+      NODE_ENV: "production"
+      PORT: "4002"
+    secrets:
+      MONGO_URI: "mongodb://product-mongo:27017/product_db"
+      JWT_SECRET: "change_this_to_a_strong_secret_min_32_characters"
+      FRONTEND_URL: "http://frontend-service.dev.svc.cluster.local:3000"
+      LOG_LEVEL: "info"
+    replicaCount: 2
+    image:
+      repository: ghcr.io/kubecart-ecommerce/product-service
+      tag: "v0.0.0"
+    imagePullPolicy: IfNotPresent
+    containerPort: 4002
+    servicePort: 4002
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 4002
+      initialDelaySeconds: 10
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 4002
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "300m"
+        memory: "256Mi"
+
+  order-service:
+    config:
+      NODE_ENV: "production"
+      PORT: "4003"
+    secrets:
+      MONGO_URI: "mongodb://order-mongo:27017/order_db"
+      JWT_SECRET: "change_this_to_a_strong_secret_min_32_characters"
+      PRODUCT_SERVICE_URL: "http://product-service.dev.svc.cluster.local:4002"
+      NOTIFICATION_SERVICE_URL: "http://notification-service.dev.svc.cluster.local:4006"
+      FRONTEND_URL: "http://frontend-service.dev.svc.cluster.local:3000"
+      LOG_LEVEL: "info"
+    replicaCount: 2
+    image:
+      repository: ghcr.io/kubecart-ecommerce/order-service
+      tag: "v0.0.0"
+    imagePullPolicy: IfNotPresent
+    containerPort: 4003
+    servicePort: 4003
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 4003
+      initialDelaySeconds: 10
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 4003
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "300m"
+        memory: "256Mi"
+
+  notification-service:
+    config:
+      NODE_ENV: "production"
+      PORT: "4006"
+    secrets:
+      MONGO_URI: "mongodb://notification-mongo:27017/notification_db"
+      SMTP_HOST: "smtp.gmail.com"
+      SMTP_PORT: "587"
+      SMTP_SECURE: "false"
+      SMTP_USER: "replace-with-smtp-user"
+      SMTP_PASS: "replace-with-smtp-password"
+      SMTP_FROM: "KubeCart <no-reply@example.com>"
+      FRONTEND_URL: "http://frontend-service.dev.svc.cluster.local:3000"
+      LOG_LEVEL: "info"
+    replicaCount: 2
+    image:
+      repository: ghcr.io/kubecart-ecommerce/notification-service
+      tag: "v0.0.0"
+    imagePullPolicy: IfNotPresent
+    containerPort: 4006
+    servicePort: 4006
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 4006
+      initialDelaySeconds: 10
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 4006
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "300m"
+        memory: "256Mi"
+
+  user-profile-service:
+    config:
+      NODE_ENV: "production"
+      PORT: "4005"
+    secrets:
+      MONGO_URI: "mongodb://profile-mongo:27017/profile_db"
+      JWT_SECRET: "change_this_to_a_strong_secret_min_32_characters"
+      FRONTEND_URL: "http://frontend-service.dev.svc.cluster.local:3000"
+      LOG_LEVEL: "info"
+    replicaCount: 2
+    image:
+      repository: ghcr.io/kubecart-ecommerce/user-profile-service
+      tag: "v0.0.0"
+    imagePullPolicy: IfNotPresent
+    containerPort: 4005
+    servicePort: 4005
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 4005
+      initialDelaySeconds: 10
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 4005
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "300m"
+        memory: "256Mi"
+
+  mongodb:
+    instances:
+      - auth-mongo
+      - cart-mongo
+      - notification-mongo
+      - order-mongo
+      - product-mongo
+      - profile-mongo
+    replicaCount: 1
+    image:
+      repository: mongo
+      tag: "6"
+    containerPort: 27017
+    servicePort: 27017
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    volume:
+      name: mongo-data
+      mountPath: /data/db
+      accessMode: ReadWriteMany
+      storageClassName: nfs-storage
+      storage: 3Gi
+
+  gateway:
+    name: api-gateway
+    gatewayClassName: kgateway
+    listener:
+      name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutesNamespaceFrom: Same
+    routeName: api-routes
+    routes:
+      - path: /api/auth
+        serviceName: auth-service
+        servicePort: 4001
+      - path: /api/products
+        serviceName: product-service
+        servicePort: 4002
+      - path: /api/orders
+        serviceName: order-service
+        servicePort: 4003
+      - path: /api/cart
+        serviceName: cart-service
+        servicePort: 4004
+      - path: /api/profile
+        serviceName: user-profile-service
+        servicePort: 4005
+      - path: /api/notifications
+        serviceName: notification-service
+        servicePort: 4006
+      - path: /
+        serviceName: frontend-service
+        servicePort: 3000
+
+  storage:
+    name: nfs-storage
+    isDefaultClass: "true"
+    provisioner: cluster.local/dev-nfs-provisioner-nfs-subdir-external-provisioner
+    parameters:
+      archiveOnDelete: "true"
+    reclaimPolicy: Delete
+    volumeBindingMode: Immediate
+
+  grafana-nodeport:
+    name: grafana-nodeport
+    namespace: monitoring
+    type: NodePort
+    selector:
+      app.kubernetes.io/name: grafana
+    port: 80
+    targetPort: 3000
+    nodePort: 32000
+
+frontend:
+  image:
+    repository: ghcr.io/kubecart-ecommerce/kubecart-frontend
+    tag: "v0.0.0"
+
+auth-service:
+  image:
+    repository: ghcr.io/kubecart-ecommerce/auth-service
+    tag: "v0.0.0"
+
+cart-service:
+  image:
+    repository: ghcr.io/kubecart-ecommerce/cart-service
+    tag: "v0.0.0"
+
+product-service:
+  image:
+    repository: ghcr.io/kubecart-ecommerce/product-service
+    tag: "v0.0.0"
+
+order-service:
+  image:
+    repository: ghcr.io/kubecart-ecommerce/order-service
+    tag: "v0.0.0"
+
+notification-service:
+  image:
+    repository: ghcr.io/kubecart-ecommerce/notification-service
+    tag: "v0.0.0"
+
+user-profile-service:
+  image:
+    repository: ghcr.io/kubecart-ecommerce/user-profile-service
+    tag: "v0.0.0"
+
+

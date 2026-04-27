@@ -1,0 +1,37 @@
+{{- $svc := index .Values.global "user-profile-service" -}}
+{{- $imageRepository := dig "user-profile-service" "image" "repository" $svc.image.repository .Values -}}
+{{- $imageTag := dig "user-profile-service" "image" "tag" $svc.image.tag .Values -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-profile-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: user-profile-service
+spec:
+  replicas: {{ $svc.replicaCount }}
+  selector:
+    matchLabels:
+      app: user-profile-service
+  template:
+    metadata:
+      labels:
+        app: user-profile-service
+    spec:
+      containers:
+        - name: user-profile-service
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
+          imagePullPolicy: {{ $svc.imagePullPolicy }}
+          ports:
+            - containerPort: {{ $svc.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: user-profile-service-config
+            - secretRef:
+                name: user-profile-service-secret
+          readinessProbe:
+{{- toYaml $svc.readinessProbe | nindent 12 }}
+          livenessProbe:
+{{- toYaml $svc.livenessProbe | nindent 12 }}
+          resources:
+{{- toYaml $svc.resources | nindent 12 }}

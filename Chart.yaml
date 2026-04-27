@@ -1,0 +1,39 @@
+apiVersion: v2
+name: kubecart
+description: Umbrella chart for KubeCart services
+type: application
+version: 0.1.0
+dependencies:
+  - name: frontend
+    version: 0.1.0
+    repository: file://charts/frontend
+  - name: gateway
+    version: 0.1.0
+    repository: file://charts/gateway
+  - name: auth-service
+    version: 0.1.0
+    repository: file://charts/auth-service
+  - name: cart-service
+    version: 0.1.0
+    repository: file://charts/cart-service
+  - name: product-service
+    version: 0.1.0
+    repository: file://charts/product-service
+  - name: order-service
+    version: 0.1.0
+    repository: file://charts/order-service
+  - name: notification-service
+    version: 0.1.0
+    repository: file://charts/notification-service
+  - name: user-profile-service
+    version: 0.1.0
+    repository: file://charts/user-profile-service
+  - name: mongodb
+    version: 0.1.0
+    repository: file://charts/mongodb
+  - name: storage
+    version: 0.1.0
+    repository: file://charts/storage
+  - name: grafana-nodeport
+    version: 0.1.0
+    repository: file://charts/grafana-nodeport

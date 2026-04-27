@@ -1,0 +1,16 @@
+{{- $svc := index .Values.global "frontend" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ $svc.servicePort }}
+      targetPort: {{ $svc.containerPort }}
+      protocol: TCP
+  selector:
+    app: frontend

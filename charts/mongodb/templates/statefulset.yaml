@@ -1,0 +1,44 @@
+{{- $mongo := .Values.global.mongodb }}
+{{- range $index, $name := $mongo.instances }}
+{{- if $index }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    app: {{ $name }}
+spec:
+  serviceName: {{ $name | quote }}
+  replicas: {{ $mongo.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+        - name: mongodb
+          image: "{{ $mongo.image.repository }}:{{ $mongo.image.tag }}"
+          ports:
+            - containerPort: {{ $mongo.containerPort }}
+          volumeMounts:
+            - name: {{ $mongo.volume.name }}
+              mountPath: {{ $mongo.volume.mountPath }}
+          resources:
+{{- toYaml $mongo.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ $mongo.volume.name }}
+      spec:
+        accessModes:
+          - {{ $mongo.volume.accessMode }}
+        storageClassName: {{ $mongo.volume.storageClassName }}
+        resources:
+          requests:
+            storage: {{ $mongo.volume.storage }}
+{{- end }}

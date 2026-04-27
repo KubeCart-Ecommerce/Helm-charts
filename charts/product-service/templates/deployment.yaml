@@ -1,0 +1,37 @@
+{{- $svc := index .Values.global "product-service" -}}
+{{- $imageRepository := dig "product-service" "image" "repository" $svc.image.repository .Values -}}
+{{- $imageTag := dig "product-service" "image" "tag" $svc.image.tag .Values -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: product-service
+spec:
+  replicas: {{ $svc.replicaCount }}
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
+          imagePullPolicy: {{ $svc.imagePullPolicy }}
+          ports:
+            - containerPort: {{ $svc.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: product-service-config
+            - secretRef:
+                name: product-service-secret
+          readinessProbe:
+{{- toYaml $svc.readinessProbe | nindent 12 }}
+          livenessProbe:
+{{- toYaml $svc.livenessProbe | nindent 12 }}
+          resources:
+{{- toYaml $svc.resources | nindent 12 }}

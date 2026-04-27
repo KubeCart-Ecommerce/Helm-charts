@@ -1,0 +1,8 @@
+{{- $svc := index .Values.global "auth-service" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: {{ .Values.global.namespace }}
+data:
+{{- toYaml $svc.config | nindent 2 }}

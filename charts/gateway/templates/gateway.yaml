@@ -1,0 +1,17 @@
+{{- $gateway := .Values.global.gateway -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $gateway.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ $gateway.name }}
+spec:
+  gatewayClassName: {{ $gateway.gatewayClassName }}
+  listeners:
+    - name: {{ $gateway.listener.name }}
+      protocol: {{ $gateway.listener.protocol }}
+      port: {{ $gateway.listener.port }}
+      allowedRoutes:
+        namespaces:
+          from: {{ $gateway.listener.allowedRoutesNamespaceFrom }}

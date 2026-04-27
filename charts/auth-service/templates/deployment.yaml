@@ -1,0 +1,37 @@
+{{- $svc := index .Values.global "auth-service" -}}
+{{- $imageRepository := dig "auth-service" "image" "repository" $svc.image.repository .Values -}}
+{{- $imageTag := dig "auth-service" "image" "tag" $svc.image.tag .Values -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: auth-service
+spec:
+  replicas: {{ $svc.replicaCount }}
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
+          imagePullPolicy: {{ $svc.imagePullPolicy }}
+          ports:
+            - containerPort: {{ $svc.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: auth-service-config
+            - secretRef:
+                name: auth-service-secret
+          readinessProbe:
+{{- toYaml $svc.readinessProbe | nindent 12 }}
+          livenessProbe:
+{{- toYaml $svc.livenessProbe | nindent 12 }}
+          resources:
+{{- toYaml $svc.resources | nindent 12 }}

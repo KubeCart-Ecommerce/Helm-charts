@@ -1,0 +1,37 @@
+{{- $svc := index .Values.global "cart-service" -}}
+{{- $imageRepository := dig "cart-service" "image" "repository" $svc.image.repository .Values -}}
+{{- $imageTag := dig "cart-service" "image" "tag" $svc.image.tag .Values -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: cart-service
+spec:
+  replicas: {{ $svc.replicaCount }}
+  selector:
+    matchLabels:
+      app: cart-service
+  template:
+    metadata:
+      labels:
+        app: cart-service
+    spec:
+      containers:
+        - name: cart-service
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
+          imagePullPolicy: {{ $svc.imagePullPolicy }}
+          ports:
+            - containerPort: {{ $svc.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: cart-service-config
+            - secretRef:
+                name: cart-service-secret
+          readinessProbe:
+{{- toYaml $svc.readinessProbe | nindent 12 }}
+          livenessProbe:
+{{- toYaml $svc.livenessProbe | nindent 12 }}
+          resources:
+{{- toYaml $svc.resources | nindent 12 }}

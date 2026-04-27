@@ -1,0 +1,16 @@
+{{- $svc := index .Values.global "product-service" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: product-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ $svc.servicePort }}
+      targetPort: {{ $svc.containerPort }}
+      protocol: TCP
+  selector:
+    app: product-service

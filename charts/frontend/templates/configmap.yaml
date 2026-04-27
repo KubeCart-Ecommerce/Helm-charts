@@ -1,0 +1,8 @@
+{{- $svc := index .Values.global "frontend" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: {{ .Values.global.namespace }}
+data:
+{{- toYaml $svc.config | nindent 2 }}

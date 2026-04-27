@@ -1,0 +1,16 @@
+{{- $svc := index .Values.global "notification-service" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: notification-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ $svc.servicePort }}
+      targetPort: {{ $svc.containerPort }}
+      protocol: TCP
+  selector:
+    app: notification-service
