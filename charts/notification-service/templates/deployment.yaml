@@ -1,6 +1,8 @@
 {{- $svc := index .Values.global "notification-service" -}}
-{{- $imageRepository := dig "notification-service" "image" "repository" $svc.image.repository .Values -}}
-{{- $imageTag := dig "notification-service" "image" "tag" $svc.image.tag .Values -}}
+{{- $imageValues := index .Values "notification-service" | default dict -}}
+{{- $image := index $imageValues "image" | default dict -}}
+{{- $imageRepository := index $image "repository" | default $svc.image.repository -}}
+{{- $imageTag := index $image "tag" | default $svc.image.tag -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
