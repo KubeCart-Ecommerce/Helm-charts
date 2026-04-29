@@ -13,6 +13,7 @@ metadata:
       notification=ghcr.io/kubecart-ecommerce/notification-service,
       profile=ghcr.io/kubecart-ecommerce/user-profile-service
     argocd.argoproj.io/compare-options: IgnoreExtraneous
+    argocd.argoproj.io/sync-options: FailOnSharedResource=false
     argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/git-branch: main
     argocd-image-updater.argoproj.io/write-back-target: "helmvalues:values-prod.yaml"
