@@ -191,8 +191,3 @@ If profile APIs fail:
 - verify the route prefix is `/api/profiles`
 - verify both gateway and frontend are using the plural path
 
-## Panel discussion summary
-
-Use this short explanation in interviews or panel discussions:
-
-KubeCart uses a GitOps-based CI/CD setup with an umbrella Helm chart. Each microservice repository only builds and pushes a container image to GHCR. ArgoCD Image Updater watches those image repositories and commits the new tags back into the Helm values files. ArgoCD then reconciles the changed Git state into Kubernetes. Dev is fully automated and tracks SHA-tagged images, while prod is protected by semver tags and a manual sync gate. The chart preserves a split between global Helm configuration and top-level image tag overrides so Image Updater can change image versions without rewriting the whole values structure.
